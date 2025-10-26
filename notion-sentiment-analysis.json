@@ -1,0 +1,235 @@
+{
+  "name": "My workflow 2",
+  "nodes": [
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "documentId": {
+          "__rl": true,
+          "value": "1h-wt2rlpTt-pQwMfvFcajx6zp-9sEAaHyZiM49Eu2aM",
+          "mode": "list",
+          "cachedResultName": "Customer Feedback",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1h-wt2rlpTt-pQwMfvFcajx6zp-9sEAaHyZiM49Eu2aM/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1h-wt2rlpTt-pQwMfvFcajx6zp-9sEAaHyZiM49Eu2aM/edit#gid=0"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheetsTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "cf6db97c-2ccc-4111-8cfe-1f0f28168d61",
+      "name": "Google Sheets Trigger",
+      "credentials": {
+        "googleSheetsTriggerOAuth2Api": {
+          "id": "3DOb2OH3Edqxfede",
+          "name": "Google Sheets Trigger account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-4o-mini",
+          "mode": "list",
+          "cachedResultName": "GPT-4O-MINI"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=Analyze this feedback and return a JSON with:\n{\n  \"sentiment\": \"Positive | Negative | Neutral\",\n  \"category\": \"Feature Request | Bug Report | General Feedback\"\n}\nFeedback: {{ $json.Feedback }}\n"
+            }
+          ]
+        },
+        "jsonOutput": true,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1.8,
+      "position": [
+        224,
+        176
+      ],
+      "id": "9dcff117-ca72-4285-b7a8-43258e6bb4ef",
+      "name": "Message a model",
+      "credentials": {
+        "openAiApi": {
+          "id": "wdw1bdwDXjNUao55",
+          "name": "n8n free OpenAI API credits"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "706068f9-31a8-4f90-a95f-bb971ac2084a",
+              "name": "=sentiment",
+              "value": "={{ $json.message.content.sentiment }}",
+              "type": "string"
+            },
+            {
+              "id": "214119fb-521b-4900-a128-798bdc99b8f8",
+              "name": "=category",
+              "value": "={{ $json.message.content.category }}",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        768,
+        16
+      ],
+      "id": "41a616e7-7054-4864-98c7-d91d67c26889",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "resource": "databasePage",
+        "databaseId": {
+          "__rl": true,
+          "value": "298ed5fc-25b7-8053-8e55-ea8da50e0e9f",
+          "mode": "list",
+          "cachedResultName": "Customer Feedback",
+          "cachedResultUrl": "https://www.notion.so/298ed5fc25b780538e55ea8da50e0e9f"
+        },
+        "title": "={{$json.Name || \"Unnamed Feedback\"}}",
+        "propertiesUi": {
+          "propertyValues": [
+            {
+              "key": "Sentiment|select",
+              "selectValue": "={{ $json.sentiment }}"
+            },
+            {
+              "key": "Category|select",
+              "selectValue": "={{ $json.category }}"
+            },
+            {
+              "key": "Source|select",
+              "selectValue": "={{ $json.Channel }}"
+            },
+            {
+              "key": "Feedback|rich_text",
+              "textContent": "={{ $json.Feedback }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.notion",
+      "typeVersion": 2.2,
+      "position": [
+        976,
+        16
+      ],
+      "id": "67b3638c-baf3-4751-804c-9c9528e3a005",
+      "name": "Create a database page",
+      "alwaysOutputData": true,
+      "credentials": {
+        "notionApi": {
+          "id": "SmkIiOm3l5nmKy4W",
+          "name": "Notion account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        560,
+        16
+      ],
+      "id": "d6eaf7d3-6d42-443b-ac32-f1504c2b5d50",
+      "name": "Merge"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Google Sheets Trigger": {
+      "main": [
+        [
+          {
+            "node": "Message a model",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Message a model": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Create a database page",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "8067ce33-6802-4f0e-bf59-b1ac6e9ef910",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "0ca59c63e882d2e22b308e2aa400d1ec46dc4bfa512b4120f899a9bf34648556"
+  },
+  "id": "KY74pOM43wNkH2Kd",
+  "tags": []
+}
