@@ -26,5 +26,5 @@ This turns raw feedback into actionable insights — allowing teams to review an
 ---
 
 ## 📊**Result in Notion**
-![Notion Output](./screenshots/notion db.png)
+![Notion Output](./screenshots/notion_db.png)
 
